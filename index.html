@@ -31,7 +31,7 @@
       <div class="tools">
         <button onclick="addNewElementOnCanvas('div')">text</button>
         <button onclick="addNewElementOnCanvas('img')">image</button>
-        <input type="text" id="imageUrl" />
+        <input type="file" id="imageUrl" accept="image/png, image/jpeg">
         <button onclick="addNewElementOnCanvas('button')">button</button>
       </div>
       <div class="canvas"></div>
@@ -41,12 +41,25 @@
       "use strict";
       const canvas = document.querySelector(".canvas");
       const canvasCords = canvas.getBoundingClientRect();
+      const reader = new FileReader();
 
       const addNewElementOnCanvas = (tag) => {
         const newElement = document.createElement(tag);
 
         if (tag == "img") {
-          const imageUrl = document.querySelector("#imageUrl");
+
+        const file = document.querySelector("#imageUrl").files[0];
+          
+          
+        reader.onloadend = function () {
+          newElement.src = reader.result;
+        }
+
+        if (file) {
+          reader.readAsDataURL(file);
+        } else {
+          preview.src = "";
+        }
 
           newElement.setAttribute("src", imageUrl.value);
 
