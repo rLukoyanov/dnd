@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Title of the Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      .app {
+        display: flex;
+      }
+
+      .draggable {
+        cursor: pointer;
+        user-select: none;
+        position: absolute;
+      }
+
+      .canvas {
+        width: 500px;
+        height: 500px;
+        margin: 50px auto;
+        background-color: aqua;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="tools">
+        <button onclick="addNewElementOnCanvas('div')">text</button>
+        <button onclick="addNewElementOnCanvas('img')">image</button>
+        <input type="text" id="imageUrl" />
+        <button onclick="addNewElementOnCanvas('button')">button</button>
+      </div>
+      <div class="canvas"></div>
+    </div>
+
+    <script>
+      "use strict";
+      const canvas = document.querySelector(".canvas");
+      const canvasCords = canvas.getBoundingClientRect();
+
+      const addNewElementOnCanvas = (tag) => {
+        const newElement = document.createElement(tag);
+
+        if (tag == "img") {
+          const imageUrl = document.querySelector("#imageUrl");
+
+          newElement.setAttribute("src", imageUrl.value);
+
+          newElement.style.width = "70px";
+          newElement.style.height = "70px";
+        } else {
+          const elementText = document.createTextNode("Привет мир");
+
+          newElement.appendChild(elementText);
+        }
+
+        newElement.classList.add("draggable");
+
+        canvas.appendChild(newElement);
+        dragElement(newElement);
+      };
+
+      const dragElement = (element) => {
+        const width = element.getBoundingClientRect().width / 2;
+        const height = element.getBoundingClientRect().height / 2;
+
+        let draggable = false;
+        function onMouseMove(event) {
+          if (draggable) {
+            if (
+              canvasCords.left + width < event.pageX &&
+              canvasCords.top + height < event.pageY
+            ) {
+              if (
+                canvasCords.right - width > event.pageX &&
+                canvasCords.bottom - height > event.pageY
+              ) {
+                element.style.left =
+                  event.pageX - element.offsetWidth / 2 + "px";
+                element.style.top =
+                  event.pageY - element.offsetHeight / 2 + "px";
+              }
+            }
+          }
+        }
+
+        element.onmouseup = function (event) {
+          draggable = false;
+        };
+
+        element.onmousedown = function (event) {
+          draggable = true;
+
+          if (draggable) {
+            document.addEventListener("mousemove", onMouseMove);
+          } else {
+            document.addEventListener("mousemove", () => {});
+          }
+        };
+      };
+    </script>
+  </body>
+</html>
