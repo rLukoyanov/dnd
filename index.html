@@ -8,27 +8,71 @@
         padding: 0;
       }
 
+      .app {
+        display: flex;
+      }
+
+      .tools {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .button {
+        width: 70px;
+        height: 70px;
+        border: none;
+        background-color: rgb(57, 139, 210);
+        color: aliceblue;
+        margin: 5px;
+        cursor: pointer;
+      }
+
+      .button:hover {
+        background-color: rgb(31, 97, 156);
+      }
+
+      .textBlock {
+        display: flex;
+        align-items: center;
+      }
+
       .draggable {
         cursor: pointer;
         user-select: none;
         position: absolute;
       }
 
+      .dragImage {
+        background-position: center;
+        background-size: cover;
+      }
+
       .canvas {
         width: 500px;
         height: 500px;
         margin: 50px auto;
-        background-color: aqua;
+        background-color: rgb(133, 160, 200);
+        box-shadow: 10px 10px 10px rgb(112, 112, 191);
       }
     </style>
   </head>
   <body>
     <div class="app">
       <div class="tools">
-        <button onclick="createNewElement('div')">text</button>
-        <button onclick="createNewElement('img')">image</button>
-        <input type="file" id="imageUrl" accept="image/png, image/jpeg" />
-        <button onclick="createNewElement('button')">button</button>
+        <div class="textBlock">
+          <button class="button" onclick="createNewElement('div')">text</button>
+          <input type="color" id="colorPallete" value="#ffffff" />
+          <input type="number" id="fontSize" placeholder="font size" />
+        </div>
+        <div>
+          <button class="button" onclick="createNewElement('img')">
+            image
+          </button>
+          <input type="file" id="imageUrl" accept="image/png, image/jpeg" />
+        </div>
+        <button class="button" onclick="createNewElement('button')">
+          button
+        </button>
       </div>
       <div class="canvas"></div>
     </div>
@@ -61,7 +105,7 @@
             x: 0,
             y: 0,
           },
-          params: { text: "", src: "" },
+          params: { text: "", textColor: "", fontSize: "", src: "" },
           width: 0,
           height: 0,
           id:
@@ -71,26 +115,41 @@
         };
 
         // creating DOM element
-        const DOMElement = document.createElement(tag);
+        let DOMElement = document.createElement(tag);
         DOMElement.classList.add("draggable");
 
         // add values into newElement
         if (tag == "img") {
           const file = document.querySelector("#imageUrl").files[0];
 
+          DOMElement = document.createElement("div");
+          DOMElement.classList.add("draggable");
+          DOMElement.classList.add("dragImage");
           DOMElement.style.width = "100px";
           DOMElement.style.height = "100px";
 
           // read img file
           reader.onloadend = function () {
-            DOMElement.setAttribute("src", reader.result);
+            DOMElement.style.backgroundImage = `url(${reader.result})`;
           };
           if (file) {
             reader.readAsDataURL(file);
           }
         } else {
-          newElement.params.text = "Hello";
-          DOMElement.innerText = newElement.params.text;
+          if (tag == "div") {
+            const color = document.querySelector("#colorPallete").value;
+            const fontSize = document.querySelector("#fontSize").value;
+
+            newElement.params.text = "Hello";
+            newElement.params.textColor = color;
+            newElement.params.fontSize = fontSize;
+            DOMElement.style.fontSize = fontSize + "px";
+            DOMElement.style.color = color;
+            DOMElement.innerText = newElement.params.text;
+          } else {
+            newElement.params.text = "Button";
+            DOMElement.innerText = newElement.params.text;
+          }
         }
 
         newElement.element = DOMElement;
@@ -130,6 +189,14 @@
                   event.pageY - canvasItem.element.offsetHeight / 2 + "px";
               }
             }
+            // console.log(
+            //   event.pageY -
+            //     canvasItem.element.offsetHeight / 2 -
+            //     canvasCords.top,
+            //   event.pageX -
+            //     canvasItem.element.offsetWidth / 2 -
+            //     canvasCords.left
+            // );
           }
         });
       };
