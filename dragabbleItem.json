@@ -7,9 +7,9 @@
       "y": 0
     },
     "params": {
-      "text": "",
-      "textColor": "",
-      "fontSize": "",
+      "text": "type text...",
+      "textColor": "#ffffff",
+      "fontSize": 16,
       "src": ""
     }
   }
