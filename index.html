@@ -54,6 +54,18 @@
         background-color: rgb(133, 160, 200);
         box-shadow: 10px 10px 10px rgb(112, 112, 191);
       }
+
+      .editingWindow {
+        position: fixed;
+        width: 200px;
+        height: 100px;
+        background-color: rgb(232, 184, 63);
+        box-shadow: 10px 10px 10px rgb(191, 180, 112);
+      }
+
+      .disable {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -61,8 +73,6 @@
       <div class="tools">
         <div class="textBlock">
           <button class="button" onclick="createNewElement('div')">text</button>
-          <input type="color" id="colorPallete" value="#ffffff" />
-          <input type="number" id="fontSize" placeholder="font size" />
         </div>
         <div>
           <button class="button" onclick="createNewElement('img')">
@@ -75,6 +85,16 @@
         </button>
       </div>
       <div class="canvas"></div>
+      <div class="editingWindow disable">
+        <p>
+          <label>color</label>
+          <input type="color" id="colorPallete" value="#ffffff" />
+        </p>
+        <p>
+          <input type="number" id="fontSize" placeholder="font size" />
+        </p>
+        <button onclick="closeEditingWindow()">close</button>
+      </div>
     </div>
 
     <script>
@@ -90,6 +110,9 @@
       const updateCanvas = () => {
         canvasItems.forEach((canvasItem) => {
           canvas.appendChild(canvasItem.element);
+          canvasItem.element.style.color = canvasItem.params.textColor;
+          canvasItem.element.style.fontSize = canvasItem.params.fontSize;
+          canvasItem.element.innerText = canvasItem.params.text;
           const { width, height } = canvasItem.element.getBoundingClientRect();
           canvasItem.width = width / 2;
           canvasItem.height = height / 2;
@@ -106,7 +129,12 @@
             x: 0,
             y: 0,
           },
-          params: { text: "", textColor: "", fontSize: "", src: "" },
+          params: {
+            text: "type text...",
+            textColor: "#ffffff",
+            fontSize: "16px",
+            src: "",
+          },
           width: 0,
           height: 0,
           id:
@@ -140,22 +168,11 @@
           if (tag == "div") {
             const color = document.querySelector("#colorPallete").value;
             const fontSize = document.querySelector("#fontSize").value;
-
-            newElement.params.text = "Hello";
-            newElement.params.textColor = color;
-            newElement.params.fontSize = fontSize + "px";
-
-            DOMElement.style.fontSize = newElement.params.fontSize;
-            DOMElement.style.color = newElement.params.textColor;
-            DOMElement.innerText = newElement.params.text;
-          } else {
-            newElement.params.text = "Button";
-            DOMElement.innerText = newElement.params.text;
           }
         }
 
         newElement.element = DOMElement;
-        newElement.element.addEventListener("dblclick", onEditElement);
+        newElement.element.addEventListener("dblclick", openEditingWindow);
 
         canvasItems.push(newElement); // push newElement into array
         updateCanvas();
@@ -175,14 +192,45 @@
         });
       };
 
-      const onEditElement = (event) => {
+      const editingWindow = document.querySelector(".editingWindow");
+
+      const openEditingWindow = (event) => {
+        document.removeEventListener("mousedown", dragElement);
         canvasItems.forEach((canvasItem) => {
           if (event.path[0] === canvasItem.element) {
             canvasItem.draggable = false;
             canvasItem.editing = true;
           }
-          console.log(canvasItems);
+
+          if (canvasItem.editing) {
+            editingWindow.classList.remove("disable");
+            editingWindow.style.top = canvasItem.position.y + 50 + "px";
+            editingWindow.style.left = canvasItem.position.x + "px";
+          }
         });
+      };
+
+      const closeEditingWindow = (event) => {
+        editingWindow.classList.add("disable");
+        document.querySelector("#colorPallete").value = null;
+        document.querySelector("#fontSize").value = null;
+        canvasItems.forEach((canvasItem) => {
+          canvasItem.editing = false;
+        });
+        document.addEventListener("mousedown", dragElement);
+      };
+
+      const onEditingElement = () => {
+        const newColor = document.querySelector("#colorPallete").value;
+        const newFontSize = document.querySelector("#fontSize").value + "px";
+        canvasItems.forEach((canvasItem) => {
+          if (canvasItem.editing) {
+            canvasItem.params.textColor = newColor;
+            canvasItem.params.fontSize = newFontSize;
+          }
+        });
+
+        updateCanvas();
       };
 
       const onMouseMove = (event) => {
@@ -202,23 +250,23 @@
                   event.pageY - canvasItem.element.offsetHeight / 2 + "px";
               }
             }
-            // console.log(
-            //   event.pageY -
-            //     canvasItem.element.offsetHeight / 2 -
-            //     canvasCords.top,
-            //   event.pageX -
-            //     canvasItem.element.offsetWidth / 2 -
-            //     canvasCords.left
-            // );
-
-            // testing
           }
+          canvasItem.position.x =
+            event.pageX - canvasItem.element.offsetWidth / 2;
+          canvasItem.position.y =
+            event.pageY - canvasItem.element.offsetHeight / 2;
         });
       };
 
-      canvas.addEventListener("mousemove", onMouseMove);
-      canvas.addEventListener("mousedown", dragElement);
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mousedown", dragElement);
       document.addEventListener("mouseup", endDragElement);
+      document
+        .querySelector("#colorPallete")
+        .addEventListener("change", onEditingElement);
+      document
+        .querySelector("#fontSize")
+        .addEventListener("change", onEditingElement);
     </script>
   </body>
 </html>
