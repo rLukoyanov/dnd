@@ -101,6 +101,7 @@
         const newElement = {
           element: null,
           draggable: false,
+          editing: false,
           position: {
             x: 0,
             y: 0,
@@ -142,9 +143,10 @@
 
             newElement.params.text = "Hello";
             newElement.params.textColor = color;
-            newElement.params.fontSize = fontSize;
-            DOMElement.style.fontSize = fontSize + "px";
-            DOMElement.style.color = color;
+            newElement.params.fontSize = fontSize + "px";
+
+            DOMElement.style.fontSize = newElement.params.fontSize;
+            DOMElement.style.color = newElement.params.textColor;
             DOMElement.innerText = newElement.params.text;
           } else {
             newElement.params.text = "Button";
@@ -153,6 +155,7 @@
         }
 
         newElement.element = DOMElement;
+        newElement.element.addEventListener("dblclick", onEditElement);
 
         canvasItems.push(newElement); // push newElement into array
         updateCanvas();
@@ -169,6 +172,16 @@
       const endDragElement = () => {
         canvasItems.forEach((canvasItem) => {
           canvasItem.draggable = false;
+        });
+      };
+
+      const onEditElement = (event) => {
+        canvasItems.forEach((canvasItem) => {
+          if (event.path[0] === canvasItem.element) {
+            canvasItem.draggable = false;
+            canvasItem.editing = true;
+          }
+          console.log(canvasItems);
         });
       };
 
