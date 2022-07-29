@@ -88,7 +88,7 @@
       <div class="editingWindow disable">
         <p>
           <label>color</label>
-          <input type="color" id="colorPallete" value="#ffffff" />
+          <input type="color" id="colorPallete" />
         </p>
         <p>
           <input type="number" id="fontSize" placeholder="font size" />
@@ -111,7 +111,7 @@
         canvasItems.forEach((canvasItem) => {
           canvas.appendChild(canvasItem.element);
           canvasItem.element.style.color = canvasItem.params.textColor;
-          canvasItem.element.style.fontSize = canvasItem.params.fontSize;
+          canvasItem.element.style.fontSize = canvasItem.params.fontSize + "px";
           canvasItem.element.innerText = canvasItem.params.text;
           const { width, height } = canvasItem.element.getBoundingClientRect();
           canvasItem.width = width / 2;
@@ -132,7 +132,7 @@
           params: {
             text: "type text...",
             textColor: "#ffffff",
-            fontSize: "16px",
+            fontSize: 16,
             src: "",
           },
           width: 0,
@@ -193,13 +193,18 @@
       };
 
       const editingWindow = document.querySelector(".editingWindow");
+      const pallete = document.querySelector("#colorPallete");
+      const fontSizeInput = document.querySelector("#fontSize");
 
       const openEditingWindow = (event) => {
         document.removeEventListener("mousedown", dragElement);
+
         canvasItems.forEach((canvasItem) => {
           if (event.path[0] === canvasItem.element) {
             canvasItem.draggable = false;
             canvasItem.editing = true;
+            pallete.value = canvasItem.params.textColor;
+            fontSizeInput.value = canvasItem.params.fontSize;
           }
 
           if (canvasItem.editing) {
@@ -221,8 +226,8 @@
       };
 
       const onEditingElement = () => {
-        const newColor = document.querySelector("#colorPallete").value;
-        const newFontSize = document.querySelector("#fontSize").value + "px";
+        const newColor = pallete.value;
+        const newFontSize = fontSizeInput.value;
         canvasItems.forEach((canvasItem) => {
           if (canvasItem.editing) {
             canvasItem.params.textColor = newColor;
