@@ -56,15 +56,17 @@
       }
 
       .editingWindow {
-        position: fixed;
-        width: 200px;
-        height: 100px;
+        margin: 0 auto;
+        width: 500px;
+        height: 100vh;
         background-color: rgb(232, 184, 63);
         box-shadow: 10px 10px 10px rgb(191, 180, 112);
       }
 
-      .disable {
-        display: none;
+      .editingWindow p {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
       }
     </style>
   </head>
@@ -85,15 +87,20 @@
         </button>
       </div>
       <div class="canvas"></div>
-      <div class="editingWindow disable">
+      <div class="editingWindow">
+        <h2>Element:</h2>
         <p>
-          <label>color</label>
-          <input type="color" id="colorPallete" />
+          <label>text-color</label>
+          <input type="color" id="textColorInput" />
         </p>
         <p>
-          <input type="number" id="fontSize" placeholder="font size" />
+          <label>background-color</label>
+          <input type="color" id="bgColorInput" />
         </p>
-        <button onclick="closeEditingWindow()">close</button>
+        <p>
+          <label>font-size</label>
+          <input type="number" id="fontSizeInput" placeholder="font size" />
+        </p>
       </div>
     </div>
 
@@ -108,9 +115,12 @@
 
       // updating elements on canvas
       const updateCanvas = () => {
+        console.log(canvasItems);
         canvasItems.forEach((canvasItem) => {
           canvas.appendChild(canvasItem.element);
           canvasItem.element.style.color = canvasItem.params.textColor;
+          canvasItem.element.style.backgroundColor =
+            canvasItem.params.backgroundColor;
           canvasItem.element.style.fontSize = canvasItem.params.fontSize + "px";
           canvasItem.element.innerText = canvasItem.params.text;
           const { width, height } = canvasItem.element.getBoundingClientRect();
@@ -122,6 +132,7 @@
       const createNewElement = (tag) => {
         // creating new element
         const newElement = {
+          type: "",
           element: null,
           draggable: false,
           editing: false,
@@ -134,6 +145,7 @@
             textColor: "#ffffff",
             fontSize: 16,
             src: "",
+            backgroundColor: "auto",
           },
           width: 0,
           height: 0,
@@ -151,28 +163,38 @@
         if (tag == "img") {
           const file = document.querySelector("#imageUrl").files[0];
 
-          DOMElement = document.createElement("div");
-          DOMElement.classList.add("draggable");
-          DOMElement.classList.add("dragImage");
-          DOMElement.style.width = "100px";
-          DOMElement.style.height = "100px";
+          newElement.type = "image";
+
+          newElement.element = document.createElement("div");
+
+          newElement.params.text = "";
+          newElement.element.style.width = "100px";
+          newElement.element.style.height = "100px";
+          newElement.element.classList.add("draggable");
+          newElement.element.classList.add("dragImage");
 
           // read img file
           reader.onloadend = function () {
-            DOMElement.style.backgroundImage = `url(${reader.result})`;
+            newElement.element.style.backgroundImage = `url(${reader.result})`;
           };
           if (file) {
             reader.readAsDataURL(file);
           }
+          newElement.element.addEventListener("dblclick", changeEditingElement);
+
+          canvasItems.push(newElement); // push newElement into array
+          updateCanvas();
+          return 1;
         } else {
           if (tag == "div") {
-            const color = document.querySelector("#colorPallete").value;
-            const fontSize = document.querySelector("#fontSize").value;
+            newElement.type = "text";
+            const color = document.querySelector("#textColorInput").value;
+            const fontSize = document.querySelector("#fontSizeInput").value;
           }
         }
 
         newElement.element = DOMElement;
-        newElement.element.addEventListener("dblclick", openEditingWindow);
+        newElement.element.addEventListener("dblclick", changeEditingElement);
 
         canvasItems.push(newElement); // push newElement into array
         updateCanvas();
@@ -193,49 +215,59 @@
       };
 
       const editingWindow = document.querySelector(".editingWindow");
-      const pallete = document.querySelector("#colorPallete");
-      const fontSizeInput = document.querySelector("#fontSize");
+      const textColorInput = document.querySelector("#textColorInput");
+      const fontSizeInput = document.querySelector("#fontSizeInput");
+      const bgColorInput = document.querySelector("#bgColorInput");
 
-      const openEditingWindow = (event) => {
-        document.removeEventListener("mousedown", dragElement);
-
+      const changeEditingElement = (event) => {
         canvasItems.forEach((canvasItem) => {
           if (event.path[0] === canvasItem.element) {
-            canvasItem.draggable = false;
             canvasItem.editing = true;
-            pallete.value = canvasItem.params.textColor;
+            textColorInput.value = canvasItem.params.textColor;
             fontSizeInput.value = canvasItem.params.fontSize;
-          }
-
-          if (canvasItem.editing) {
-            editingWindow.classList.remove("disable");
-            editingWindow.style.top = canvasItem.position.y + 50 + "px";
-            editingWindow.style.left = canvasItem.position.x + "px";
+            bgColorInput.value = canvasItem.params.backgroundColor;
+          } else {
+            canvasItem.editing = false;
           }
         });
       };
 
-      const closeEditingWindow = (event) => {
-        editingWindow.classList.add("disable");
-        document.querySelector("#colorPallete").value = null;
-        document.querySelector("#fontSize").value = null;
-        canvasItems.forEach((canvasItem) => {
-          canvasItem.editing = false;
-        });
-        document.addEventListener("mousedown", dragElement);
+      const endEditing = (event) => {
+        if (event.path[0] === canvasItem.element) {
+          canvasItem.editing = true;
+          textColorInput.value = null;
+          fontSizeInput.value = null;
+          canvasItems.forEach((canvasItem) => {
+            canvasItem.editing = false;
+          });
+        }
       };
 
-      const onEditingElement = () => {
-        const newColor = pallete.value;
-        const newFontSize = fontSizeInput.value;
-        canvasItems.forEach((canvasItem) => {
-          if (canvasItem.editing) {
-            canvasItem.params.textColor = newColor;
-            canvasItem.params.fontSize = newFontSize;
-          }
-        });
-
-        updateCanvas();
+      const onEditingElement = {
+        editTextColor: () => {
+          canvasItems.forEach((canvasItem) => {
+            if (canvasItem.editing) {
+              canvasItem.params.textColor = textColorInput.value;
+            }
+          });
+          updateCanvas();
+        },
+        editFontSize: () => {
+          canvasItems.forEach((canvasItem) => {
+            if (canvasItem.editing) {
+              canvasItem.params.fontSize = fontSizeInput.value;
+            }
+          });
+          updateCanvas();
+        },
+        editBackgroundColor: () => {
+          canvasItems.forEach((canvasItem) => {
+            if (canvasItem.editing) {
+              canvasItem.params.backgroundColor = bgColorInput.value;
+            }
+          });
+          updateCanvas();
+        },
       };
 
       const onMouseMove = (event) => {
@@ -267,11 +299,14 @@
       document.addEventListener("mousedown", dragElement);
       document.addEventListener("mouseup", endDragElement);
       document
-        .querySelector("#colorPallete")
-        .addEventListener("change", onEditingElement);
+        .querySelector("#textColorInput")
+        .addEventListener("change", onEditingElement.editTextColor);
       document
-        .querySelector("#fontSize")
-        .addEventListener("change", onEditingElement);
+        .querySelector("#fontSizeInput")
+        .addEventListener("change", onEditingElement.editFontSize);
+      document
+        .querySelector("#bgColorInput")
+        .addEventListener("change", onEditingElement.editBackgroundColor);
     </script>
   </body>
 </html>
