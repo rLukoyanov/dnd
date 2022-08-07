@@ -88,7 +88,7 @@
       </div>
       <div class="canvas"></div>
       <div class="editingWindow">
-        <h2>Element:</h2>
+        <h2 id="currentElement">Current:</h2>
         <p>
           <label>text-color</label>
           <input type="color" id="textColorInput" />
@@ -124,8 +124,8 @@
           canvasItem.element.style.fontSize = canvasItem.params.fontSize + "px";
           canvasItem.element.innerText = canvasItem.params.text;
           const { width, height } = canvasItem.element.getBoundingClientRect();
-          canvasItem.width = width / 2;
-          canvasItem.height = height / 2;
+          canvasItem.width = width;
+          canvasItem.height = height;
         });
       };
 
@@ -186,10 +186,14 @@
           updateCanvas();
           return 1;
         } else {
-          if (tag == "div") {
+          if (tag === "div") {
             newElement.type = "text";
             const color = document.querySelector("#textColorInput").value;
             const fontSize = document.querySelector("#fontSizeInput").value;
+          }
+
+          if (tag === "button") {
+            newElement.type = "button";
           }
         }
 
@@ -214,6 +218,8 @@
         });
       };
 
+      const currentElementTitle = document.querySelector("#currentElement");
+
       const editingWindow = document.querySelector(".editingWindow");
       const textColorInput = document.querySelector("#textColorInput");
       const fontSizeInput = document.querySelector("#fontSizeInput");
@@ -222,7 +228,10 @@
       const changeEditingElement = (event) => {
         canvasItems.forEach((canvasItem) => {
           if (event.path[0] === canvasItem.element) {
+            currentElementTitle.innerText = `Current: ${canvasItem.type} (${canvasItem.params.text})`;
+
             canvasItem.editing = true;
+
             textColorInput.value = canvasItem.params.textColor;
             fontSizeInput.value = canvasItem.params.fontSize;
             bgColorInput.value = canvasItem.params.backgroundColor;
@@ -274,12 +283,12 @@
         canvasItems.forEach((canvasItem) => {
           if (canvasItem.draggable) {
             if (
-              canvasCords.left + canvasItem.width < event.pageX &&
-              canvasCords.top + canvasItem.height < event.pageY
+              canvasCords.left + canvasItem.width / 2 < event.pageX &&
+              canvasCords.top + canvasItem.height / 2 < event.pageY
             ) {
               if (
-                canvasCords.right - canvasItem.width > event.pageX &&
-                canvasCords.bottom - canvasItem.height > event.pageY
+                canvasCords.right - canvasItem.width / 2 > event.pageX &&
+                canvasCords.bottom - canvasItem.height / 2 > event.pageY
               ) {
                 canvasItem.element.style.left =
                   event.pageX - canvasItem.element.offsetWidth / 2 + "px";
