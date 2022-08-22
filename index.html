@@ -115,7 +115,6 @@
 
       // updating elements on canvas
       const updateCanvas = () => {
-        console.log(canvasItems);
         canvasItems.forEach((canvasItem) => {
           canvas.appendChild(canvasItem.element);
           canvasItem.element.style.color = canvasItem.params.textColor;
@@ -279,9 +278,34 @@
         },
       };
 
+      const checkMouse = (canvasElement) => {
+        if (canvasCords.top > event.pageY) {
+          canvasElement.position.y = canvasCords.top;
+          canvasElement.element.style.top = canvasCords.top + "px";
+        }
+
+        if (canvasCords.bottom < event.pageY) {
+          canvasElement.position.y = canvasCords.bottom;
+          canvasElement.element.style.top =
+            canvasCords.bottom - canvasElement.height + "px";
+        }
+
+        if (canvasCords.left > event.pageX) {
+          canvasElement.position.x = canvasCords.left;
+          canvasElement.element.style.left = canvasCords.left + "px";
+        }
+
+        if (canvasCords.right < event.pageX) {
+          canvasElement.position.x = canvasCords.right;
+          canvasElement.element.style.left =
+            canvasCords.right - canvasElement.width + "px";
+        }
+      };
+
       const onMouseMove = (event) => {
         canvasItems.forEach((canvasItem) => {
           if (canvasItem.draggable) {
+            checkMouse(canvasItem, event);
             if (
               canvasCords.left + canvasItem.width / 2 < event.pageX &&
               canvasCords.top + canvasItem.height / 2 < event.pageY
@@ -297,6 +321,7 @@
               }
             }
           }
+
           canvasItem.position.x =
             event.pageX - canvasItem.element.offsetWidth / 2;
           canvasItem.position.y =
